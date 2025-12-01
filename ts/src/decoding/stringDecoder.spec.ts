@@ -9,7 +9,7 @@ import { DictionaryType } from "../metadata/tile/dictionaryType";
 import { ScalarType } from "../metadata/tile/scalarType";
 import type IntWrapper from "./intWrapper";
 import { type Column } from "../metadata/tileset/tilesetMetadata";
-import { StringDecoder } from "./stringDecoder";
+import { decodeSharedDictionary, decodePlainStringVector } from "./stringDecoder";
 import * as integerDecoder from "./integerDecodingUtils";
 
 function createMockStreamMetadata(
@@ -93,12 +93,12 @@ function setupVarintDecodeMock(value: number | number[] = 0): void {
 
 describe('decodePlainStringVector', () => {
     it('should return null when plainLengthStream is null', () => {
-        const result = (StringDecoder as any).decodePlainStringVector('test', null, new Uint8Array([1, 2, 3]), null, null);
+        const result = decodePlainStringVector('test', null, new Uint8Array([1, 2, 3]), null, null);
         expect(result).toBeNull();
     });
 
     it('should return null when plainDataStream is null', () => {
-        const result = (StringDecoder as any).decodePlainStringVector('test', new Int32Array([0, 3]), null, null, null);
+        const result = decodePlainStringVector('test', new Int32Array([0, 3]), null, null, null);
         expect(result).toBeNull();
     });
 
@@ -107,7 +107,7 @@ describe('decodePlainStringVector', () => {
         const plainDataStream = new Uint8Array([97, 98, 99, 100, 101, 102, 103]);
         const offsetStream = new Int32Array([0, 1]);
 
-        const result = (StringDecoder as any).decodePlainStringVector('test', plainLengthStream, plainDataStream, offsetStream, null);
+        const result = decodePlainStringVector('test', plainLengthStream, plainDataStream, offsetStream, null);
 
         expect(result).toBeDefined();
         expect(result.name).toBe('test');
@@ -119,7 +119,7 @@ describe('decodePlainStringVector', () => {
         const offsetStream = new Int32Array([0, 1]);
         const nullabilityBuffer = { size: () => 2, get: (i: number) => true } as any;
 
-        const result = (StringDecoder as any).decodePlainStringVector('test', plainLengthStream, plainDataStream, offsetStream, nullabilityBuffer);
+        const result = decodePlainStringVector('test', plainLengthStream, plainDataStream, offsetStream, nullabilityBuffer);
 
         expect(result).toBeDefined();
         expect(result.name).toBe('test');
@@ -133,7 +133,7 @@ describe('decodePlainStringVector', () => {
             get: (i: number) => i !== 1
         } as any;
 
-        const result = (StringDecoder as any).decodePlainStringVector('test', plainLengthStream, plainDataStream, null, nullabilityBuffer);
+        const result = decodePlainStringVector('test', plainLengthStream, plainDataStream, null, nullabilityBuffer);
 
         expect(result).toBeDefined();
         expect(result.name).toBe('test');
@@ -143,7 +143,7 @@ describe('decodePlainStringVector', () => {
         const plainLengthStream = new Int32Array([0, 3, 7]);
         const plainDataStream = new Uint8Array([97, 98, 99, 100, 101, 102, 103]);
 
-        const result = (StringDecoder as any).decodePlainStringVector('test', plainLengthStream, plainDataStream, null, null);
+        const result = decodePlainStringVector('test', plainLengthStream, plainDataStream, null, null);
 
         expect(result).toBeDefined();
         expect(result.name).toBe('test');
@@ -176,7 +176,7 @@ describe('decodeSharedDictionary', () => {
             setupLengthStreamDecodeMock(expectedOffsetBuffer, streamMetadata);
             setupVarintDecodeMock(0);
 
-            const result = StringDecoder.decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
+            const result = decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
 
             expect(streamMetadataDecoderModule.decodeStreamMetadata).toHaveBeenCalledWith(mockData, mockOffset);
             expect(IntegerStreamDecoder.decodeLengthStreamToOffsetBuffer).toHaveBeenCalled();
@@ -195,7 +195,7 @@ describe('decodeSharedDictionary', () => {
             setupLengthStreamDecodeMock(expectedOffsetBuffer, streamMetadata);
             setupVarintDecodeMock(0);
 
-            const result = StringDecoder.decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
+            const result = decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
 
             expect(result).toBeDefined();
         });
@@ -213,7 +213,7 @@ describe('decodeSharedDictionary', () => {
             setupLengthStreamDecodeMock(offsetBuffer, lengthStreamMetadata);
             setupVarintDecodeMock(0);
 
-            const result = StringDecoder.decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
+            const result = decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
 
             expect(mockOffset.add).toHaveBeenCalledWith(40);
             expect(result).toBeDefined();
@@ -230,7 +230,7 @@ describe('decodeSharedDictionary', () => {
             setupLengthStreamDecodeMock(offsetBuffer, lengthStreamMetadata);
             setupVarintDecodeMock(0);
 
-            const result = StringDecoder.decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
+            const result = decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
 
             expect(mockOffset.add).toHaveBeenNthCalledWith(1, 20);
             expect(mockOffset.add).toHaveBeenNthCalledWith(2, 40);
@@ -251,7 +251,7 @@ describe('decodeSharedDictionary', () => {
             setupLengthStreamDecodeMock(offsetBuffer, lengthStreamMetadata);
             setupVarintDecodeMock(0);
 
-            const result = StringDecoder.decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
+            const result = decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
 
             expect(mockOffset.add).toHaveBeenNthCalledWith(1, 20);
             expect(mockOffset.add).toHaveBeenNthCalledWith(2, 35);
@@ -275,7 +275,7 @@ describe('decodeSharedDictionary', () => {
             setupLengthStreamDecodeMock(offsetBuffer, lengthStreamMetadata);
             setupVarintDecodeMock([1, 1]); // First field has 1 stream, then 1 more stream to skip
 
-            const result = StringDecoder.decodeSharedDictionary(
+            const result = decodeSharedDictionary(
                 mockData,
                 mockOffset,
                 mockColumn,
@@ -301,7 +301,7 @@ describe('decodeSharedDictionary', () => {
             setupLengthStreamDecodeMock(offsetBuffer, lengthStreamMetadata);
             setupVarintDecodeMock([2, 2]); // 2 streams in first field, 2 streams to skip
 
-            const result = StringDecoder.decodeSharedDictionary(
+            const result = decodeSharedDictionary(
                 mockData,
                 mockOffset,
                 mockColumn,
@@ -325,7 +325,7 @@ describe('decodeSharedDictionary', () => {
             setupLengthStreamDecodeMock(offsetBuffer, lengthStreamMetadata);
             setupVarintDecodeMock(0);
 
-            StringDecoder.decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
+            decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
 
             expect(mockOffset.add).toHaveBeenCalledWith(100);
         });
@@ -343,7 +343,7 @@ describe('decodeSharedDictionary', () => {
             setupLengthStreamDecodeMock(offsetBuffer, lengthStreamMetadata);
             setupVarintDecodeMock(0);
 
-            const result = StringDecoder.decodeSharedDictionary(mockData, mockOffset, mockColumn, 1);
+            const result = decodeSharedDictionary(mockData, mockOffset, mockColumn, 1);
 
             expect(result).toBeDefined();
         });
@@ -362,7 +362,7 @@ describe('decodeSharedDictionary', () => {
             setupLengthStreamDecodeMock(largeOffsetBuffer, lengthStreamMetadata);
             setupVarintDecodeMock(0);
 
-            const result = StringDecoder.decodeSharedDictionary(mockData, mockOffset, mockColumn, 10000);
+            const result = decodeSharedDictionary(mockData, mockOffset, mockColumn, 10000);
 
             expect(result).toBeDefined();
         });
@@ -380,7 +380,7 @@ describe('decodeSharedDictionary', () => {
             setupVarintDecodeMock(0);
 
             expect(() => {
-                StringDecoder.decodeSharedDictionary(mockData, mockOffset, emptyColumnMock, 0);
+                decodeSharedDictionary(mockData, mockOffset, emptyColumnMock, 0);
             }).not.toThrow();
         });
     });
@@ -397,7 +397,7 @@ describe('decodeSharedDictionary', () => {
             setupLengthStreamDecodeMock(offsetBuffer, lengthStreamMetadata);
             setupVarintDecodeMock(0);
 
-            const result = StringDecoder.decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
+            const result = decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
 
             expect(result).toBeDefined();
         });
@@ -418,7 +418,7 @@ describe('decodeSharedDictionary', () => {
             setupVarintDecodeMock([2, 2]); // 2 streams in field, 2 streams to skip
 
             expect(() => {
-                StringDecoder.decodeSharedDictionary(mockData, mockOffset, columnWithNonStringField, numFeatures);
+                decodeSharedDictionary(mockData, mockOffset, columnWithNonStringField, numFeatures);
             }).toThrow('Currently only optional string fields are implemented for a struct.');
         });
     });
@@ -435,7 +435,7 @@ describe('decodeSharedDictionary', () => {
             setupLengthStreamDecodeMock(offsetBuffer, lengthStreamMetadata);
             setupVarintDecodeMock(0);
 
-            const result = StringDecoder.decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
+            const result = decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
 
             expect(result).toBeInstanceOf(Array);
         });
@@ -451,7 +451,7 @@ describe('decodeSharedDictionary', () => {
             setupLengthStreamDecodeMock(offsetBuffer, lengthStreamMetadata);
             setupVarintDecodeMock(0);
 
-            const result = StringDecoder.decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
+            const result = decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
 
             expect(result).not.toBeNull();
             expect(result).not.toBeUndefined();
