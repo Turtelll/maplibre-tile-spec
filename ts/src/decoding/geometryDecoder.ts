@@ -1,5 +1,5 @@
 import { type GeometryVector, type MortonSettings } from "../vector/geometry/geometryVector";
-import { StreamMetadataDecoder } from "../metadata/tile/streamMetadataDecoder";
+import { decodeStreamMetadata } from "../metadata/tile/streamMetadataDecoder";
 import type IntWrapper from "./intWrapper";
 import IntegerStreamDecoder from "./integerStreamDecoder";
 import { VectorType } from "../vector/vectorType";
@@ -24,7 +24,7 @@ export function decodeGeometryColumn(
     numFeatures: number,
     scalingData?: GeometryScaling,
 ): GeometryVector | GpuVector {
-    const geometryTypeMetadata = StreamMetadataDecoder.decode(tile, offset);
+    const geometryTypeMetadata = decodeStreamMetadata(tile, offset);
     const geometryTypesVectorType = IntegerStreamDecoder.getVectorType(geometryTypeMetadata, numFeatures, tile, offset);
 
     let geometryOffsets: Int32Array = null;
@@ -43,7 +43,7 @@ export function decodeGeometryColumn(
         const geometryType = IntegerStreamDecoder.decodeConstIntStream(tile, offset, geometryTypeMetadata, false);
 
         for (let i = 0; i < numStreams - 1; i++) {
-            const geometryStreamMetadata = StreamMetadataDecoder.decode(tile, offset);
+            const geometryStreamMetadata = decodeStreamMetadata(tile, offset);
             switch (geometryStreamMetadata.physicalStreamType) {
                 case PhysicalStreamType.LENGTH:
                     switch (geometryStreamMetadata.logicalStreamType.lengthType) {
@@ -166,7 +166,7 @@ export function decodeGeometryColumn(
     const geometryTypeVector = IntegerStreamDecoder.decodeIntStream(tile, offset, geometryTypeMetadata, false);
 
     for (let i = 0; i < numStreams - 1; i++) {
-        const geometryStreamMetadata = StreamMetadataDecoder.decode(tile, offset);
+        const geometryStreamMetadata = decodeStreamMetadata(tile, offset);
         switch (geometryStreamMetadata.physicalStreamType) {
             case PhysicalStreamType.LENGTH:
                 switch (geometryStreamMetadata.logicalStreamType.lengthType) {
@@ -416,7 +416,7 @@ function decodeLevel2LengthStream(
 }
 
 /*export function decodeGeometryColumnSequential(tile: Uint8Array, numStreams: number, offset: IntWrapper, numFeatures: number): GeometryVector {
-    const geometryTypeMetadata = StreamMetadataDecoder.decode(tile, offset);
+    const geometryTypeMetadata = decodeStreamMetadata(tile, offset);
     const geometryTypesVectorType = IntegerStreamDecoder.getVectorTypeIntStream(geometryTypeMetadata);
 
     let numGeometries: Int32Array = null;
@@ -431,7 +431,7 @@ function decodeLevel2LengthStream(
         const geometryType = IntegerStreamDecoder.decodeConstIntStream(tile, offset, geometryTypeMetadata, false);
 
         for (let i = 0; i < numStreams - 1; i++) {
-            const geometryStreamMetadata = StreamMetadataDecoder.decode(tile, offset);
+            const geometryStreamMetadata = decodeStreamMetadata(tile, offset);
             switch (geometryStreamMetadata.physicalStreamType) {
                 case PhysicalStreamType.LENGTH:
                     switch (geometryStreamMetadata.logicalStreamType.lengthType) {
@@ -498,7 +498,7 @@ function decodeLevel2LengthStream(
         IntegerStreamDecoder.decodeIntStream(tile, offset, geometryTypeMetadata, false);
 
     for (let i = 0; i < numStreams - 1; i++) {
-        const geometryStreamMetadata = StreamMetadataDecoder.decode(tile, offset);
+        const geometryStreamMetadata = decodeStreamMetadata(tile, offset);
         switch (geometryStreamMetadata.physicalStreamType) {
             case PhysicalStreamType.LENGTH:
                 switch (geometryStreamMetadata.logicalStreamType.lengthType) {

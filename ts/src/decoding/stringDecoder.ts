@@ -1,4 +1,4 @@
-import {StreamMetadataDecoder} from "../metadata/tile/streamMetadataDecoder";
+import {decodeStreamMetadata} from "../metadata/tile/streamMetadataDecoder";
 import {StringFlatVector} from "../vector/flat/stringFlatVector";
 import {StringDictionaryVector} from "../vector/dictionary/stringDictionaryVector";
 import type IntWrapper from "./intWrapper";
@@ -38,7 +38,7 @@ export class StringDecoder {
         let plainDataStream: Uint8Array = null;
 
         for (let i = 0; i < numStreams; i++) {
-            const streamMetadata = StreamMetadataDecoder.decode(data, offset);
+            const streamMetadata = decodeStreamMetadata(data, offset);
             if (streamMetadata.byteLength === 0) {
                 continue;
             }
@@ -195,7 +195,7 @@ export class StringDecoder {
 
         let dictionaryStreamDecoded = false;
         while (!dictionaryStreamDecoded) {
-            const streamMetadata = StreamMetadataDecoder.decode(data, offset);
+            const streamMetadata = decodeStreamMetadata(data, offset);
             switch (streamMetadata.physicalStreamType) {
                 case PhysicalStreamType.LENGTH:
                     if (LengthType.DICTIONARY === streamMetadata.logicalStreamType.lengthType) {
@@ -258,9 +258,9 @@ export class StringDecoder {
                 throw new Error("Currently only optional string fields are implemented for a struct.");
             }
 
-            const presentStreamMetadata = StreamMetadataDecoder.decode(data, offset);
+            const presentStreamMetadata = decodeStreamMetadata(data, offset);
             const presentStream = decodeBooleanRle(data, presentStreamMetadata.numValues, offset);
-            const offsetStreamMetadata = StreamMetadataDecoder.decode(data, offset);
+            const offsetStreamMetadata = decodeStreamMetadata(data, offset);
             const offsetCount = (offsetStreamMetadata instanceof RleEncodedStreamMetadata
                 ? offsetStreamMetadata.numRleValues
                 : offsetStreamMetadata.numValues);

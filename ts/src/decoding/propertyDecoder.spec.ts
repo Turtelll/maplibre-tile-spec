@@ -1,5 +1,5 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {StreamMetadataDecoder} from "../metadata/tile/streamMetadataDecoder";
+import * as streamMetadataDecoderModule from "../metadata/tile/streamMetadataDecoder";
 import IntegerStreamDecoder from "./integerStreamDecoder";
 import {decodePropertyColumn} from "./propertyDecoder";
 import { type Column} from "../metadata/tileset/tilesetMetadata";
@@ -154,7 +154,7 @@ function mockNullableIntegerDecoder(scalarType: ScalarType) {
 
 // Helper: Setup nullable column with separate nullability stream
 function setupNullableStreamMocks() {
-    const metadataSpy = vi.spyOn(StreamMetadataDecoder, 'decode');
+    const metadataSpy = vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata');
 
     // First call: nullability stream
     metadataSpy.mockReturnValueOnce({
@@ -196,7 +196,7 @@ describe('decodePropertyColumn', () => {
             'should decode $testName column',
             ({ scalarType, vectorClass, mockFn }) => {
                 // Arrange
-                vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockStreamMetadata());
+                vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
                 mockFn(scalarType);
                 const column = createColumn(scalarType, false);
                 const data = new Uint8Array(TEST_DATA.BUFFER_SIZE);
@@ -233,7 +233,7 @@ describe('decodePropertyColumn', () => {
             'should decode $testName column',
             ({ scalarType, vectorClass, mockFn }) => {
                 // Arrange
-                vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockStreamMetadata());
+                vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
                 mockFn(scalarType);
                 const column = createColumn(scalarType, false);
                 const data = new Uint8Array(TEST_DATA.BUFFER_SIZE);
@@ -322,7 +322,7 @@ describe('decodePropertyColumn', () => {
             'should decode $testName with SEQUENCE encoding',
             ({ scalarType, vectorClass, mockFn }) => {
                 // Arrange
-                vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockRleStreamMetadata());
+                vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockRleStreamMetadata());
                 mockFn(scalarType);
                 const column = createColumn(scalarType, false);
                 const data = new Uint8Array(TEST_DATA.BUFFER_SIZE);
@@ -358,7 +358,7 @@ describe('decodePropertyColumn', () => {
             'should decode $testName with CONST encoding',
             ({ scalarType, vectorClass, mockFn }) => {
                 // Arrange
-                vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockStreamMetadata());
+                vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
                 mockFn(scalarType);
                 const column = createColumn(scalarType, false);
                 const data = new Uint8Array(TEST_DATA.BUFFER_SIZE);
@@ -394,7 +394,7 @@ describe('decodePropertyColumn', () => {
             'should decode $testName column',
             ({ scalarType, vectorClass, mockFn }) => {
                 // Arrange
-                vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockStreamMetadata());
+                vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
                 mockFn(scalarType);
                 const column = createColumn(scalarType, false);
                 const data = new Uint8Array(TEST_DATA.BUFFER_SIZE);
@@ -450,7 +450,7 @@ describe('decodePropertyColumn', () => {
     describe('Boolean Columns', () => {
         it('should decode non-nullable BOOLEAN column', () => {
             // Arrange
-            vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockStreamMetadata());
+            vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
             vi.spyOn(decodingUtils, 'decodeBooleanRle')
                 .mockReturnValue(new Uint8Array([0b00000111]));
             const column = createColumn(ScalarType.BOOLEAN, false);
@@ -513,7 +513,7 @@ describe('decodePropertyColumn', () => {
     describe('Column Filtering', () => {
         it('should return null when column NOT in propertyColumnNames filter', () => {
             // Arrange
-            vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockStreamMetadata());
+            vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
             const skipColumnSpy = vi.spyOn(decodingUtils, 'skipColumn');
             const column = createColumn(ScalarType.STRING);
             const filterList = new Set(['name', 'value']);
@@ -530,7 +530,7 @@ describe('decodePropertyColumn', () => {
 
         it('should decode column when it IS in propertyColumnNames filter', () => {
             // Arrange
-            vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockStreamMetadata());
+            vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
             vi.spyOn(decodingUtils, 'decodeBooleanRle')
                 .mockReturnValue(new Uint8Array([0b00000111]));
             const column = createColumn(ScalarType.BOOLEAN);
@@ -547,7 +547,7 @@ describe('decodePropertyColumn', () => {
 
         it('should ignore filter when propertyColumnNames is undefined', () => {
             // Arrange
-            vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockStreamMetadata());
+            vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
             vi.spyOn(decodingUtils, 'decodeBooleanRle')
                 .mockReturnValue(new Uint8Array([0b00000111]));
             const column = createColumn(ScalarType.BOOLEAN);
@@ -563,7 +563,7 @@ describe('decodePropertyColumn', () => {
 
         it('should handle empty filter set', () => {
             // Arrange
-            vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockStreamMetadata());
+            vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
             const skipColumnSpy = vi.spyOn(decodingUtils, 'skipColumn');
             const column = createColumn(ScalarType.BOOLEAN);
             const filterList = new Set<string>();
@@ -582,7 +582,7 @@ describe('decodePropertyColumn', () => {
     describe('Edge Cases', () => {
         it('should handle single value column', () => {
             // Arrange
-            vi.spyOn(StreamMetadataDecoder, 'decode')
+            vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata')
                 .mockReturnValue(mockStreamMetadata(12, 1));
             vi.spyOn(IntegerStreamDecoder, 'getVectorType')
                 .mockReturnValue(VectorType.FLAT);
@@ -603,7 +603,7 @@ describe('decodePropertyColumn', () => {
         it('should handle large column with many values', () => {
             // Arrange
             const largeNumValues = 100000;
-            vi.spyOn(StreamMetadataDecoder, 'decode')
+            vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata')
                 .mockReturnValue(mockStreamMetadata(400000, largeNumValues));
             vi.spyOn(IntegerStreamDecoder, 'getVectorType')
                 .mockReturnValue(VectorType.FLAT);
@@ -627,7 +627,7 @@ describe('decodePropertyColumn', () => {
 
         it('should handle zero numValues gracefully', () => {
             // Arrange
-            vi.spyOn(StreamMetadataDecoder, 'decode')
+            vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata')
                 .mockReturnValue({...mockStreamMetadata(), numValues: 0});
             vi.spyOn(IntegerStreamDecoder, 'getVectorType')
                 .mockReturnValue(VectorType.FLAT);
@@ -647,7 +647,7 @@ describe('decodePropertyColumn', () => {
 
         it('should handle multiple sequential columns with offset advancement', () => {
             // Arrange
-            vi.spyOn(StreamMetadataDecoder, 'decode')
+            vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata')
                 .mockReturnValue(mockStreamMetadata(12, 3));
             vi.spyOn(IntegerStreamDecoder, 'getVectorType')
                 .mockReturnValue(VectorType.FLAT);
@@ -695,7 +695,7 @@ describe('decodePropertyColumn', () => {
 
         it('should handle offset at non-zero starting position', () => {
             // Arrange
-            vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockStreamMetadata());
+            vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
             vi.spyOn(IntegerStreamDecoder, 'getVectorType')
                 .mockReturnValue(VectorType.FLAT);
             vi.spyOn(IntegerStreamDecoder, 'decodeIntStream')
@@ -716,7 +716,7 @@ describe('decodePropertyColumn', () => {
 
         it('should correctly skip columns with filterList and advance offset', () => {
             // Arrange
-            vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockStreamMetadata());
+            vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
             const skipColumnSpy = vi.spyOn(decodingUtils, 'skipColumn')
                 .mockImplementation((numStreams, data, offset) => {
                     offset.add(12 * numStreams); // Simulate skipping
@@ -741,7 +741,7 @@ describe('decodePropertyColumn', () => {
     describe('Type Consistency Checks', () => {
         it('should preserve column metadata in returned vector', () => {
             // Arrange
-            vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockStreamMetadata());
+            vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
             vi.spyOn(IntegerStreamDecoder, 'getVectorType')
                 .mockReturnValue(VectorType.FLAT);
             vi.spyOn(IntegerStreamDecoder, 'decodeIntStream')
@@ -766,7 +766,7 @@ describe('decodePropertyColumn', () => {
             ];
 
             types.forEach(scalarType => {
-                vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockStreamMetadata());
+                vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
                 mockIntegerDecoder(scalarType);
 
                 const column = createColumn(scalarType, false);
@@ -788,7 +788,7 @@ describe('decodePropertyColumn', () => {
     describe('Error Scenarios', () => {
         it('should handle invalid scalar type gracefully', () => {
             // Arrange
-            vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockStreamMetadata());
+            vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
             const column = createColumn(999 as any); // Invalid type
             const data = new Uint8Array(TEST_DATA.BUFFER_SIZE);
             const offset = new IntWrapper(0);
@@ -801,7 +801,7 @@ describe('decodePropertyColumn', () => {
 
         it('should handle mismatched numStreams for string type', () => {
             // Arrange
-            vi.spyOn(StreamMetadataDecoder, 'decode').mockReturnValue(mockStreamMetadata());
+            vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
             const column: Column = {
                 name: 'stringCol',
                 nullable: false,

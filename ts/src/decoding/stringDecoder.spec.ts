@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { type LogicalStreamType } from "../metadata/tile/logicalStreamType";
 import IntegerStreamDecoder from "./integerStreamDecoder";
-import { StreamMetadataDecoder } from "../metadata/tile/streamMetadataDecoder";
+import * as streamMetadataDecoderModule from "../metadata/tile/streamMetadataDecoder";
 import { type StreamMetadata } from "../metadata/tile/streamMetadata";
 import { LengthType } from "../metadata/tile/lengthType";
 import { PhysicalStreamType } from "../metadata/tile/physicalStreamType";
@@ -61,12 +61,12 @@ function setupOffsetMock(initialValue: number = 0) {
 }
 
 /**
- * Setup StreamMetadataDecoder mock with a pool of metadata.
+ * Setup decodeStreamMetadata mock with a pool of metadata.
  * Cycles through the pool if more calls are made than metadata provided.
  */
 function setupStreamMetadataDecodeMock(metadata: StreamMetadata[]): void {
     let callCount = 0;
-    vi.spyOn(StreamMetadataDecoder, 'decode').mockImplementation(() => {
+    vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockImplementation(() => {
         const result = metadata[callCount % metadata.length];
         callCount++;
         return result;
@@ -178,7 +178,7 @@ describe('decodeSharedDictionary', () => {
 
             const result = StringDecoder.decodeSharedDictionary(mockData, mockOffset, mockColumn, numFeatures);
 
-            expect(StreamMetadataDecoder.decode).toHaveBeenCalledWith(mockData, mockOffset);
+            expect(streamMetadataDecoderModule.decodeStreamMetadata).toHaveBeenCalledWith(mockData, mockOffset);
             expect(IntegerStreamDecoder.decodeLengthStreamToOffsetBuffer).toHaveBeenCalled();
             expect(result).toBeDefined();
             expect(Array.isArray(result)).toBe(true);
