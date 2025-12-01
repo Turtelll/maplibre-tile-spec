@@ -14,24 +14,6 @@ export class ConstGpuVector extends GpuVector {
         super(triangleOffsets, indexBuffer, vertexBuffer, topologyVector);
     }
 
-    static create(
-        numGeometries: number,
-        geometryType: number,
-        triangleOffsets: Int32Array,
-        indexBuffer: Int32Array,
-        vertexBuffer: Int32Array,
-        topologyVector?: TopologyVector | null,
-    ): GpuVector {
-        return new ConstGpuVector(
-            numGeometries,
-            geometryType,
-            triangleOffsets,
-            indexBuffer,
-            vertexBuffer,
-            topologyVector,
-        );
-    }
-
     /*static createMortonEncoded(
         numGeometries: number,
         geometryType: number,
@@ -65,4 +47,22 @@ export class ConstGpuVector extends GpuVector {
     containsSingleGeometryType(): boolean {
         return true;
     }
+}
+
+export function createConstGpuVector(
+    numGeometries: number,
+    geometryType: number,
+    triangleOffsets: Int32Array,
+    indexBuffer: Int32Array,
+    vertexBuffer: Int32Array,
+    topologyVector?: TopologyVector | null,
+): GpuVector {
+    return new ConstGpuVector(
+        numGeometries,
+        geometryType,
+        triangleOffsets,
+        indexBuffer,
+        vertexBuffer,
+        topologyVector,
+    );
 }

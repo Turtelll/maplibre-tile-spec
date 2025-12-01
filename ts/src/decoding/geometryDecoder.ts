@@ -8,12 +8,12 @@ import { LengthType } from "../metadata/tile/lengthType";
 import { DictionaryType } from "../metadata/tile/dictionaryType";
 import { type MortonEncodedStreamMetadata } from "../metadata/tile/mortonEncodedStreamMetadata";
 import TopologyVector from "../vector/geometry/topologyVector";
-import { ConstGeometryVector } from "../vector/geometry/constGeometryVector";
-import { FlatGeometryVector } from "../vector/geometry/flatGeometryVector";
+import {  createConstGeometryVector, createMortonEncodedConstGeometryVector } from "../vector/geometry/constGeometryVector";
+import { createFlatGeometryVector, createMortonEncodedFlatGeometryVector } from "../vector/geometry/flatGeometryVector";
 import { OffsetType } from "../metadata/tile/offsetType";
-import { ConstGpuVector } from "../vector/geometry/constGpuVector";
+import {  createConstGpuVector } from "../vector/geometry/constGpuVector";
 import { type GpuVector } from "../vector/geometry/gpuVector";
-import { FlatGpuVector } from "../vector/geometry/flatGpuVector";
+import {  createFlatGpuVector } from "../vector/geometry/flatGpuVector";
 import type GeometryScaling from "./geometryScaling";
 
 // TODO: get rid of numFeatures parameter
@@ -129,7 +129,7 @@ export function decodeGeometryColumn(
             if (geometryOffsets != null || partOffsets != null) {
                 /* Case when the indices of a Polygon outline are encoded in the tile */
                 const topologyVector = new TopologyVector(geometryOffsets, partOffsets, ringOffsets);
-                return ConstGpuVector.create(
+                return createConstGpuVector(
                     numFeatures,
                     geometryType,
                     triangleOffsets,
@@ -140,19 +140,19 @@ export function decodeGeometryColumn(
             }
 
             /* Case when the no Polygon outlines are encoded in the tile */
-            return ConstGpuVector.create(numFeatures, geometryType, triangleOffsets, indexBuffer, vertexBuffer);
+            return createConstGpuVector(numFeatures, geometryType, triangleOffsets, indexBuffer, vertexBuffer);
         }
 
         return mortonSettings === null
             ? /* Currently only 2D coordinates (Vec2) are implemented in the encoder  */
-              ConstGeometryVector.create(
+              createConstGeometryVector(
                   numFeatures,
                   geometryType,
                   new TopologyVector(geometryOffsets, partOffsets, ringOffsets),
                   vertexOffsets,
                   vertexBuffer,
               )
-            : ConstGeometryVector.createMortonEncoded(
+            : createMortonEncodedConstGeometryVector(
                   numFeatures,
                   geometryType,
                   new TopologyVector(geometryOffsets, partOffsets, ringOffsets),
@@ -237,7 +237,7 @@ export function decodeGeometryColumn(
     if (indexBuffer !== null && partOffsets === null) {
         /* Case when the indices of a Polygon outline are not encoded in the data so no
          *  topology data are present in the tile */
-        return FlatGpuVector.create(geometryTypeVector, triangleOffsets, indexBuffer, vertexBuffer);
+        return createFlatGpuVector(geometryTypeVector, triangleOffsets, indexBuffer, vertexBuffer);
     }
 
     // TODO: refactor the following instructions -> decode in one pass for performance reasons
@@ -259,7 +259,7 @@ export function decodeGeometryColumn(
 
     if (indexBuffer !== null) {
         /* Case when the indices of a Polygon outline are encoded in the tile */
-        return FlatGpuVector.create(
+        return createFlatGpuVector(
             geometryTypeVector,
             triangleOffsets,
             indexBuffer,
@@ -269,13 +269,13 @@ export function decodeGeometryColumn(
     }
 
     return mortonSettings === null /* Currently only 2D coordinates (Vec2) are implemented in the encoder  */
-        ? FlatGeometryVector.create(
+        ? createFlatGeometryVector(
               geometryTypeVector,
               new TopologyVector(geometryOffsets, partOffsets, ringOffsets),
               vertexOffsets,
               vertexBuffer,
           )
-        : FlatGeometryVector.createMortonEncoded(
+        : createMortonEncodedFlatGeometryVector(
               geometryTypeVector,
               new TopologyVector(geometryOffsets, partOffsets, ringOffsets),
               vertexOffsets,
@@ -476,7 +476,7 @@ function decodeLevel2LengthStream(
             }
         }
 
-        return mortonSettings != null? ConstGeometryVector.createMortonEncoded(
+        return mortonSettings != null? createMortonEncodedConstGeometryVector(
                 numFeatures,
                 geometryType,
                 new TopologyVector(numGeometries, numParts, numRings),
@@ -485,7 +485,7 @@ function decodeLevel2LengthStream(
                 mortonSettings)
             :
             /!* Currently only 2D coordinates (Vec2) are implemented in the encoder  *!/
-            ConstGeometryVector.create(
+            createConstGeometryVector(
                 numFeatures,
                 geometryType,
                 new TopologyVector(numGeometries, numParts, numRings),
@@ -561,7 +561,7 @@ function decodeLevel2LengthStream(
     }*!/
 
     return mortonSettings !== null
-        ? FlatGeometryVector.createMortonEncoded(
+        ? createMortonEncodedFlatGeometryVector(
             geometryTypeVector,
             new TopologyVector(numGeometries, numParts, numRings),
             vertexOffsets,
@@ -569,7 +569,7 @@ function decodeLevel2LengthStream(
             mortonSettings)
         :
         /!* Currently only 2D coordinates (Vec2) are implemented in the encoder  *!/
-        FlatGeometryVector.create(
+        createFlatGeometryVector(
             geometryTypeVector,
             new TopologyVector(numGeometries, numParts, numRings),
             vertexOffsets,

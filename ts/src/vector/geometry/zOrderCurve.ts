@@ -25,18 +25,18 @@ export default class ZOrderCurve extends SpaceFillingCurve {
         }
         return coordinate;
     }
+}
 
-    static decode(mortonCode: number, numBits: number, coordinateShift: number): { x: number; y: number } {
-        const x = ZOrderCurve.decodeMorton(mortonCode, numBits) - coordinateShift;
-        const y = ZOrderCurve.decodeMorton(mortonCode >> 1, numBits) - coordinateShift;
-        return { x, y };
-    }
+export function decodeZOrderCurve(mortonCode: number, numBits: number, coordinateShift: number): { x: number; y: number } {
+    const x = decodeMortonCoordinate(mortonCode, numBits) - coordinateShift;
+    const y = decodeMortonCoordinate(mortonCode >> 1, numBits) - coordinateShift;
+    return { x, y };
+}
 
-    private static decodeMorton(code: number, numBits: number): number {
-        let coordinate = 0;
-        for (let i = 0; i < numBits; i++) {
-            coordinate |= (code & (1 << (2 * i))) >> i;
-        }
-        return coordinate;
+export function decodeMortonCoordinate(code: number, numBits: number): number {
+    let coordinate = 0;
+    for (let i = 0; i < numBits; i++) {
+        coordinate |= (code & (1 << (2 * i))) >> i;
     }
+    return coordinate;
 }
