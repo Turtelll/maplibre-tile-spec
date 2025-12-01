@@ -20,8 +20,18 @@ import {
     decodeNullableFloatsLE,
     skipColumn,
 } from "./decodingUtils";
-import IntegerStreamDecoder from "./integerStreamDecoder";
-import { StringDecoder } from "./stringDecoder";
+import {
+    getVectorType,
+    decodeNullableLongStream,
+    decodeLongStream,
+    decodeSequenceLongStream,
+    decodeConstLongStream,
+    decodeNullableIntStream,
+    decodeIntStream,
+    decodeSequenceIntStream,
+    decodeConstIntStream
+} from "./integerStreamDecoder";
+import { decodeStringVector, decodeSharedDictionary } from "./stringDecoder";
 import { IntSequenceVector } from "../vector/sequence/intSequenceVector";
 import { type RleEncodedStreamMetadata } from "../metadata/tile/rleEncodedStreamMetadata";
 import { LongSequenceVector } from "../vector/sequence/longSequenceVector";
@@ -54,7 +64,7 @@ export function decodePropertyColumn(
         return null;
     }
 
-    return StringDecoder.decodeSharedDictionary(data, offset, columnMetadata, numFeatures, propertyColumnNames);
+    return decodeSharedDictionary(data, offset, columnMetadata, numFeatures, propertyColumnNames);
 }
 
 function decodeScalarPropertyColumn(
@@ -94,7 +104,7 @@ function decodeScalarPropertyColumn(
         case ScalarType.STRING:
             // In embedded format: numStreams includes nullability stream if column is nullable
             const stringDataStreams = columnMetadata.nullable ? numStreams - 1 : numStreams;
-            return StringDecoder.decode(columnMetadata.name, data, offset, stringDataStreams, nullabilityBuffer);
+            return decodeStringVector(columnMetadata.name, data, offset, stringDataStreams, nullabilityBuffer);
         case ScalarType.BOOLEAN:
             return decodeBooleanColumn(data, offset, columnMetadata, numFeatures, sizeOrNullabilityBuffer);
         case ScalarType.UINT_64:
@@ -163,21 +173,15 @@ function decodeLongColumn(
     scalarColumn: ScalarColumn,
 ): Vector<BigInt64Array, bigint> {
     const dataStreamMetadata = decodeStreamMetadata(data, offset);
-    const vectorType = IntegerStreamDecoder.getVectorType(dataStreamMetadata, sizeOrNullabilityBuffer, data, offset);
+    const vectorType = getVectorType(dataStreamMetadata, sizeOrNullabilityBuffer, data, offset);
     const isSigned = scalarColumn.physicalType === ScalarType.INT_64;
     if (vectorType === VectorType.FLAT) {
         const dataStream = isNullabilityBuffer(sizeOrNullabilityBuffer)
-            ? IntegerStreamDecoder.decodeNullableLongStream(
-                  data,
-                  offset,
-                  dataStreamMetadata,
-                  isSigned,
-                  sizeOrNullabilityBuffer,
-              )
-            : IntegerStreamDecoder.decodeLongStream(data, offset, dataStreamMetadata, isSigned);
+            ? decodeNullableLongStream(data, offset, dataStreamMetadata, isSigned, sizeOrNullabilityBuffer)
+            : decodeLongStream(data, offset, dataStreamMetadata, isSigned);
         return new LongFlatVector(column.name, dataStream, sizeOrNullabilityBuffer);
     } else if (vectorType === VectorType.SEQUENCE) {
-        const id = IntegerStreamDecoder.decodeSequenceLongStream(data, offset, dataStreamMetadata);
+        const id = decodeSequenceLongStream(data, offset, dataStreamMetadata);
         return new LongSequenceVector(
             column.name,
             id[0],
@@ -185,7 +189,7 @@ function decodeLongColumn(
             (dataStreamMetadata as RleEncodedStreamMetadata).numRleValues,
         );
     } else {
-        const constValue = IntegerStreamDecoder.decodeConstLongStream(data, offset, dataStreamMetadata, isSigned);
+        const constValue = decodeConstLongStream(data, offset, dataStreamMetadata, isSigned);
         return new LongConstVector(column.name, constValue, sizeOrNullabilityBuffer);
     }
 }
@@ -198,22 +202,16 @@ function decodeIntColumn(
     sizeOrNullabilityBuffer: number | BitVector,
 ): Vector<Int32Array, number> {
     const dataStreamMetadata = decodeStreamMetadata(data, offset);
-    const vectorType = IntegerStreamDecoder.getVectorType(dataStreamMetadata, sizeOrNullabilityBuffer, data, offset);
+    const vectorType = getVectorType(dataStreamMetadata, sizeOrNullabilityBuffer, data, offset);
     const isSigned = scalarColumn.physicalType === ScalarType.INT_32;
 
     if (vectorType === VectorType.FLAT) {
         const dataStream = isNullabilityBuffer(sizeOrNullabilityBuffer)
-            ? IntegerStreamDecoder.decodeNullableIntStream(
-                  data,
-                  offset,
-                  dataStreamMetadata,
-                  isSigned,
-                  sizeOrNullabilityBuffer,
-              )
-            : IntegerStreamDecoder.decodeIntStream(data, offset, dataStreamMetadata, isSigned);
+            ? decodeNullableIntStream(data, offset, dataStreamMetadata, isSigned, sizeOrNullabilityBuffer)
+            : decodeIntStream(data, offset, dataStreamMetadata, isSigned);
         return new IntFlatVector(column.name, dataStream, sizeOrNullabilityBuffer);
     } else if (vectorType === VectorType.SEQUENCE) {
-        const id = IntegerStreamDecoder.decodeSequenceIntStream(data, offset, dataStreamMetadata);
+        const id = decodeSequenceIntStream(data, offset, dataStreamMetadata);
         return new IntSequenceVector(
             column.name,
             id[0],
@@ -221,7 +219,7 @@ function decodeIntColumn(
             (dataStreamMetadata as RleEncodedStreamMetadata).numRleValues,
         );
     } else {
-        const constValue = IntegerStreamDecoder.decodeConstIntStream(data, offset, dataStreamMetadata, isSigned);
+        const constValue = decodeConstIntStream(data, offset, dataStreamMetadata, isSigned);
         return new IntConstVector(column.name, constValue, sizeOrNullabilityBuffer);
     }
 }

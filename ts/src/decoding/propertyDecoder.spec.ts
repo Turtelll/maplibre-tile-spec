@@ -1,6 +1,16 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import * as streamMetadataDecoderModule from "../metadata/tile/streamMetadataDecoder";
-import IntegerStreamDecoder from "./integerStreamDecoder";
+import { decodeStreamMetadata } from "../metadata/tile/streamMetadataDecoder";
+import {
+    getVectorType,
+    decodeNullableLongStream,
+    decodeLongStream,
+    decodeSequenceLongStream,
+    decodeConstLongStream,
+    decodeNullableIntStream,
+    decodeIntStream,
+    decodeSequenceIntStream,
+    decodeConstIntStream
+} from "./integerStreamDecoder";
 import {decodePropertyColumn} from "./propertyDecoder";
 import { type Column} from "../metadata/tileset/tilesetMetadata";
 import {ScalarType} from "../metadata/tile/scalarType";
@@ -12,7 +22,7 @@ import {LongSequenceVector} from "../vector/sequence/longSequenceVector";
 import {IntConstVector} from "../vector/constant/intConstVector";
 import {LongConstVector} from "../vector/constant/longConstVector";
 import {VectorType} from "../vector/vectorType";
-import {StringDecoder} from "./stringDecoder";
+import * as stringDecoderModule from "./stringDecoder";
 import * as decodingUtils from './decodingUtils';
 import {BooleanFlatVector} from "../vector/flat/booleanFlatVector";
 import {FloatFlatVector} from "../vector/flat/floatFlatVector";
@@ -233,7 +243,7 @@ describe('decodePropertyColumn', () => {
             'should decode $testName column',
             ({ scalarType, vectorClass, mockFn }) => {
                 // Arrange
-                vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
+                vi.spyOn(decodeStreamMetadata(), 'decodeStreamMetadata').mockReturnValue(mockStreamMetadata());
                 mockFn(scalarType);
                 const column = createColumn(scalarType, false);
                 const data = new Uint8Array(TEST_DATA.BUFFER_SIZE);
@@ -322,7 +332,7 @@ describe('decodePropertyColumn', () => {
             'should decode $testName with SEQUENCE encoding',
             ({ scalarType, vectorClass, mockFn }) => {
                 // Arrange
-                vi.spyOn(streamMetadataDecoderModule, 'decodeStreamMetadata').mockReturnValue(mockRleStreamMetadata());
+                vi.spyOn(decodeStreamMetadata(), 'decodeStreamMetadata').mockReturnValue(mockRleStreamMetadata());
                 mockFn(scalarType);
                 const column = createColumn(scalarType, false);
                 const data = new Uint8Array(TEST_DATA.BUFFER_SIZE);
@@ -495,7 +505,7 @@ describe('decodePropertyColumn', () => {
                 // Arrange
                 setupNullableStreamMocks();
                 const mockStringVector = { name: 'age' };
-                const stringDecodeSpy = vi.spyOn(StringDecoder, 'decode')
+                const stringDecodeSpy = vi.spyOn(stringDecoderModule, 'decodeStringVector')
                     .mockReturnValue(mockStringVector as any);
                 const column = createColumn(ScalarType.STRING, true);
                 const data = new Uint8Array(TEST_DATA.BUFFER_SIZE);

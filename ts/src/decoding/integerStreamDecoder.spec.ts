@@ -1,5 +1,5 @@
 import {describe, it, expect} from "vitest";
-import IntegerStreamDecoder from "./integerStreamDecoder";
+import {getVectorType} from "./integerStreamDecoder";
 import {RleEncodedStreamMetadata} from "../metadata/tile/rleEncodedStreamMetadata";
 import {PhysicalStreamType} from "../metadata/tile/physicalStreamType";
 import {LogicalStreamType} from "../metadata/tile/logicalStreamType";
@@ -58,7 +58,7 @@ describe("IntegerStreamDecoder.getVectorType", () => {
             const metadata = createRleMetadata(LogicalLevelTechnique.DELTA, LogicalLevelTechnique.RLE, 1, 5);
             const data = new Uint8Array([5, 2]);
             const offset = new IntWrapper(0);
-            const result = IntegerStreamDecoder.getVectorType(metadata, 5, data, offset);
+            const result = getVectorType(metadata, 5, data, offset);
             expect(result).toBe(VectorType.SEQUENCE);
         });
     });
@@ -68,7 +68,7 @@ describe("IntegerStreamDecoder.getVectorType", () => {
             const metadata = createRleMetadata(LogicalLevelTechnique.DELTA, LogicalLevelTechnique.RLE, 2, 5);
             const data = new Uint8Array([1, 4, 2, 2]);
             const offset = new IntWrapper(0);
-            const result = IntegerStreamDecoder.getVectorType(metadata, 5, data, offset);
+            const result = getVectorType(metadata, 5, data, offset);
             expect(result).toBe(VectorType.SEQUENCE);
         });
     });
